@@ -26,14 +26,18 @@ class Parser:
 
         return Vertex(vertex_id, people, brittle)
 
-    def parse_edge(self, line):
+    def parse_edge(self, line, vertices):
         edge_index = line[line.index('E') + 1]
         weight = int(line[line.index('W') + 1])
         # set the edge to the vertexes
         vertex_1 = int(line[4])
         vertex_2 = int(line[6])
+        edge = Edge(edge_index, vertex_1, vertex_2, weight)
 
-        return Edge(edge_index, vertex_1, vertex_2, weight)
+        vertices[vertex_1 - 1].edges.append(edge)
+        vertices[vertex_2 - 1].edges.append(edge)
+
+        return edge
 
     def parse_file_to_graph(self, file_path):
         # set the graph components
@@ -55,7 +59,7 @@ class Parser:
             if line[1] == "V":
                 g.add_vertex(self.parse_vertex(line))
             elif line[1] == "E":
-                g.add_edge(self.parse_edge(line))
+                g.add_edge(self.parse_edge(line, g.vertices))
             else:
                 continue
         return g
@@ -76,7 +80,7 @@ def get_init_user_prompt(graph):
         if agent_type == 0:
             agents.append(HumanAgent(i, agent_desired_location, graph))
         elif agent_type == 1:
-            agents.append(StupidGreedyAgent())
+            agents.append(StupidGreedyAgent(i, agent_desired_location))
         elif agent_type == 2:
             agents.append(SaboteurAgent())
         else:

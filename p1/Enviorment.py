@@ -1,4 +1,17 @@
+import heapq
 from typing import Dict, List
+
+
+class Path:
+    def __init__(self, vertex):
+        self.vertex = vertex
+        self.prev = None
+        self.distance = float('inf')
+
+    def __lt__(self, other):
+        if self.distance == other.distance:
+            return self.vertex.index < other.vertex.index
+        return self.distance < other.distance
 
 
 class Edge:
@@ -45,14 +58,39 @@ class Graph:
             return 'BLOCKED'
         return edge
 
+    def get_other_side_of_edge(self, edge, vertex):
+        if edge.vertex1_index == int(vertex.index):
+            return self.vertices[edge.vertex2_index - 1]
+        return self.vertices[edge.vertex1_index - 1]
+
+    def dijkstra(self, source):
+        # TODO - add path a list of vertexes and that the algorithm will return it
+        """ find the shortest path from source to all vertices """
+        paths = []
+        heap = []
+        heapq.heapify(paths)
+        visited_vertices = len(self.vertices) * [False]
+        for v in self.vertices:
+            p = Path(v)
+            if int(v.index) == source:
+                p.distance = 0
+            heapq.heappush(heap, p)
+            paths.append(p)
+
+        while len(heap) > 0:
+            u = heapq.heappop(heap)
+            visited_vertices[int(u.vertex.index) - 1] = True
+            for e in u.vertex.edges:
+                v = self.get_other_side_of_edge(e, u.vertex)
+                if not visited_vertices[int(v.index) - 1]:
+                    alt = u.distance + e.weight
+                    if alt < paths[int(v.index) - 1].distance:
+                        paths[int(v.index) - 1].distance = alt
+                        paths[int(v.index) - 1].prev = u
+                        heapq.heapify(heap)
+        return paths
+
     # def is_game_over(self, agents): TODO: implement this
-    #     for v in self.vertices:
-    #         if v is not None and v.deadline > self.time and v.num_people != 0:
-    #             return False
-    #     for agent in agents:
-    #         if not agent.terminated and not self.vertices[agent.location].isShelter:
-    #             return False
-    #     return True
 
     def print_graph(self):
         print("\n Graph: \n")

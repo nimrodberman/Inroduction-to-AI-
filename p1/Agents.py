@@ -1,3 +1,6 @@
+from typing import List
+
+
 class Agent:
     def __init__(self, index, initial_location):
         self.index = index
@@ -71,16 +74,42 @@ class HumanAgent(Agent):
     def print_scores(self):
         print("index: {}, scores: {},  type: human".format(self.index, self.score))
 
+
 # TODO
 class StupidGreedyAgent(Agent):
 
-    def __init__(self):
-        pass
+    def __init__(self, index, initial_location):
+        super().__init__(index, initial_location)
+        self.paths = []
+
+    def action(self, graph):
+        # if agent have not paths calculate all paths using dijkstra
+        if not self.paths:
+            optional_paths = graph.dijkstra(self.location + 1)
+            # filter paths to only include paths that have people to rescue and that the edged are not blocked
+            optional_paths: List = list(filter(lambda x: x[1] > 0 and not graph.edges[x[0]].blocked, optional_paths))
+
+            # check if there are paths available
+            if not optional_paths:
+                print('no paths to rescue people')
+                return 'EXIT'
+
+            # take the shortest path and update the path
+            optional_paths.sort(key=lambda x: len(x))
+            self.paths = optional_paths[0]
+
+            # return the next move
+            return self.paths.pop(0)
+
+        # if agent have paths return the next move
+        return self.paths.pop(0)
+
+    def print_scores(self):
+        print("index: {}, scores: {},  type: greedy".format(self.index, self.score))
+
 
 # TODO
 class SaboteurAgent(Agent):
 
     def __init__(self):
         pass
-
-
