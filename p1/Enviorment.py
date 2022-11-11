@@ -3,9 +3,9 @@ from typing import Dict, List
 
 
 class Path:
-    def __init__(self, vertex):
-        self.vertex = vertex
-        self.prev = None
+    def __init__(self, destination_vertex):
+        self.vertex = destination_vertex
+        self.prev_vertex = None
         self.distance = float('inf')
 
     def __lt__(self, other):
@@ -86,7 +86,7 @@ class Graph:
                     alt = u.distance + e.weight
                     if alt < paths[int(v.index) - 1].distance:
                         paths[int(v.index) - 1].distance = alt
-                        paths[int(v.index) - 1].prev = u
+                        paths[int(v.index) - 1].prev_vertex = u
                         heapq.heapify(heap)
         return paths
 

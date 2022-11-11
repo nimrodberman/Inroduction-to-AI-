@@ -7,7 +7,6 @@ class Agent:
         self.location = initial_location
         self.score = 0
         self.not_active = False
-        # self.carried_people = 0 TODO: need this ?
         self.ppl_saved = 0
         self.on_edge = 0
 
@@ -36,7 +35,7 @@ class Agent:
 
         # update agent state
         self.location = destination
-        self.on_edge = steps
+        self.on_edge = steps - 1
 
         return destination
 
@@ -80,29 +79,45 @@ class StupidGreedyAgent(Agent):
 
     def __init__(self, index, initial_location):
         super().__init__(index, initial_location)
-        self.paths = []
+
+    def arrived_to_destination(self, graph, destination):
+        # update ppl_saved
+        self.ppl_saved += graph.vertices[destination].num_rescue
+        # print the agent saving people
+        print("agent {} saved {} people from vertex {}".format(self.index, graph.vertices[destination].num_rescue,
+                                                               destination))
+
+        # update vertex state
+        graph.vertices[destination].num_rescue = 0
 
     def action(self, graph):
+
+        if self.on_edge > 0:
+            print("the agent is on edge")
+            return 'ON-EDGE'
+
         # if agent have not paths calculate all paths using dijkstra
-        if not self.paths:
-            optional_paths = graph.dijkstra(self.location + 1)
-            # filter paths to only include paths that have people to rescue and that the edged are not blocked
-            optional_paths: List = list(filter(lambda x: x[1] > 0 and not graph.edges[x[0]].blocked, optional_paths))
+        optional_paths = graph.dijkstra(self.location + 1)
+        # filter paths to only include paths that have people to rescue and that the distance is not infinity
+        optional_paths = list(
+            filter(lambda x: x.distance != float('inf') and x.vertex.num_rescue > 0 and x.distance != 0,
+                   optional_paths))
 
-            # check if there are paths available
-            if not optional_paths:
-                print('no paths to rescue people')
-                return 'EXIT'
+        # check if there are paths available
+        if not optional_paths:
+            print('no paths to rescue people')
+            return 'EXIT'
 
-            # take the shortest path and update the path
-            optional_paths.sort(key=lambda x: len(x))
-            self.paths = optional_paths[0]
+        # sort by the shortest distance
+        optional_paths.sort(key=lambda x: x.distance)
 
-            # return the next move
-            return self.paths.pop(0)
+        cur = optional_paths[0]
+        nxt = cur.prev_vertex
+        while nxt.prev_vertex is not None:
+            cur = nxt
+            nxt = cur.prev_vertex
 
-        # if agent have paths return the next move
-        return self.paths.pop(0)
+        return cur.vertex.index
 
     def print_scores(self):
         print("index: {}, scores: {},  type: greedy".format(self.index, self.score))
