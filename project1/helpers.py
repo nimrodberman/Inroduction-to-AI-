@@ -1,8 +1,8 @@
-# TODO - adapt the parser to the new format
+import copy
 from typing import Dict, List
 
-from p1.Agents import HumanAgent, StupidGreedyAgent, SaboteurAgent
-from p1.Enviorment import Vertex, Edge, Graph
+from project1.Agents import HumanAgent, StupidGreedyAgent, SaboteurAgent
+from project1.Enviroment import Vertex, Edge, Graph
 
 
 class Parser:
@@ -12,7 +12,8 @@ class Parser:
 
     def parse_vertex(self, line):
         try:
-            people = int(line[line.index('P') + 1])
+            line.index('P')
+            people = int(line.split(' ')[1][1:].replace('\n', ''))
         except Exception as e:
             people = 0
 
@@ -22,28 +23,24 @@ class Parser:
         except Exception as e:
             brittle = False
 
-        vertex_id = line[line.index('V') + 1]
+        vertex_id = line.split(' ')[0][2:].replace('\n', '')
 
-        return Vertex(vertex_id, people, brittle)
+        return int(vertex_id), int(people), brittle
 
-    def parse_edge(self, line, vertices):
-        edge_index = line[line.index('E') + 1]
-        weight = int(line[line.index('W') + 1])
+    def parse_edge(self, line):
+        edge_index = line.split(' ')[0][2:]
+        weight = int(line.split(' ')[3][1:].replace('\n', ''))
         # set the edge to the vertexes
-        vertex_1 = int(line[4])
-        vertex_2 = int(line[6])
-        edge = Edge(edge_index, vertex_1, vertex_2, weight)
+        vertex_1 = int(line.split(' ')[1])
+        vertex_2 = int(line.split(' ')[2])
 
-        vertices[vertex_1 - 1].edges.append(edge)
-        vertices[vertex_2 - 1].edges.append(edge)
-
-        return edge
+        return int(edge_index), int(vertex_1), int(vertex_2), int(weight)
 
     def parse_file_to_graph(self, file_path):
         # set the graph components
         g = Graph()
 
-        vertices: List = []
+        vertices: Dict[int: Vertex] = {}
         edges: Dict[int: Edge] = {}
 
         # open the file
@@ -57,11 +54,15 @@ class Parser:
             if len(line) < 2:
                 continue
             if line[1] == "V":
-                g.add_vertex(self.parse_vertex(line))
+                vertex_id, people, brittle = self.parse_vertex(line)
+                g.add_vertex(vertex_id, people, brittle)
             elif line[1] == "E":
-                g.add_edge(self.parse_edge(line, g.vertices))
+                edge_index, vertex_1, vertex_2, weight = self.parse_edge(line)
+                g.add_edge(edge_index, vertex_1, vertex_2, weight)
             else:
                 continue
+
+        g.original_graph = copy.deepcopy(g)
         return g
 
 
@@ -76,13 +77,13 @@ def get_init_user_prompt(graph):
         agent_type = int(input("Enter {} agent type(0-human, 1-stupid greedy, 2-saboteur): ".format(i)))
         # get agent desired location
         agent_desired_location = int(input(
-            "Enter {} agent desired vertex location: ".format(i))) - 1  # -1 because the vertices are starting from 0
+            "Enter {} agent desired vertex location: ".format(i)))
         if agent_type == 0:
-            agents.append(HumanAgent(i, agent_desired_location, graph))
+            agents.append(HumanAgent(i, agent_desired_location))
         elif agent_type == 1:
             agents.append(StupidGreedyAgent(i, agent_desired_location))
         elif agent_type == 2:
-            agents.append(SaboteurAgent())
+            agents.append(SaboteurAgent(i, agent_desired_location))
         else:
             print("Error: invalid agent type")
             exit(1)
