@@ -11,7 +11,7 @@ T = 0.0000001
 
 if __name__ == '__main__':
     # parse graph environment
-    graph = Parser().parse_file_to_graph('env2.txt')
+    graph = Parser().parse_file_to_graph('env.txt')
 
     # print the graph
     graph.print_graph()
