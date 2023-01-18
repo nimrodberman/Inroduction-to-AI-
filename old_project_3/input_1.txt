@@ -1,0 +1,13 @@
+#V 4          ; number of vertices n in graph (from 1 to n)
+
+#V 1 F 0.2    ; Vertex 1, probability blockage given mild weather 0.2
+#V 2 F 0.3    ; Vertex 2, probability blockage given mild weather 0.3
+              ; Either assume blockage probability 0 by default,
+              ; or make sure to specify this probability for all vertices.
+
+#E1 1 2 W1 ; Edge1 between vertices 1 and 2, weight 1
+#E2 2 3 W3 ; Edge2 between vertices 2 and 3, weight 3
+#E3 3 4 W3 ; Edge3 between vertices 3 and 4, weight 3
+#E4 2 4 W4 ; Edge4 between vertices 2 and 4, weight 4
+
+#W 0.1 0.4 0.5 ; Prior distribution over weather: 0.1 for mild, 0.4 for stormy, 0.5 for extreme
